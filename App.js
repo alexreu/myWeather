@@ -1,20 +1,22 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import * as Location from 'expo-location';
-import * as Permissions from 'expo-permissions'
+import * as Permissions from 'expo-permissions';
+import axios from 'axios';
 
 export default class App extends React.Component {
   state = {
     location: null,
     isLoading: true,
-    errMsg: null
+    errMsg: null,
+    weather: null
   }
 
-  componentWillMount(){
-    this._getLocation();
+  componentDidMount(){
+    this.getLocationAndWeather();
   }
 
-  _getLocation = async () => {
+  getLocationAndWeather = async () => {
     const {status} = await Permissions.askAsync(Permissions.LOCATION);
     this.setState({isLoading: true})
     if(status !== 'granted') {
@@ -27,13 +29,29 @@ export default class App extends React.Component {
     let location = await Location.getCurrentPositionAsync({});
     this.setState({
       location,
+    })
+
+    let weather = await this.getWeather(location.coords.latitude, location.coords.longitude)
+    this.setState({
+      weather,
       isLoading: false
+
     })
   };
 
+  getWeather = (lat, lon) => {
+    axios.get(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&APPID=0a2d09f4b93ddff3e444d2db7b7953b9`)
+    .then(weather => {
+      this.setState({
+        weather: weather.data,
+        isLoading: false
+      })
+    })
+  }
+
   render(){
-    console.log(this.state.location)
-    const {isLoading, errMsg, location} = this.state;
+    const {isLoading, errMsg, location, weather} = this.state;
+
     const text = isLoading ? "Chargement" : errMsg ? errMsg : JSON.stringify(location); 
     return(
       <View style={styles.container}>
