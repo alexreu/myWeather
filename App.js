@@ -73,6 +73,9 @@ export default class App extends React.Component {
             <Text style={styles.weatherMinTemp}>{weather ? 'Temp Min: ' + Math.floor(weather.main.temp_min - k) + '°C' : ''}</Text>
           </View>
         </View>
+        <View style={styles.signature}>
+            <Text style={styles.signatureContent}>Alex.js</Text>
+        </View>
       </View>
     )
   }
@@ -115,5 +118,15 @@ const styles = StyleSheet.create({
     marginLeft: 2,
     fontSize: 15,
     fontWeight: 'bold'
+  },
+  signature: {
+    flex: 0.1,
+    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
+    marginRight: 20,
+  },
+  signatureContent: {
+    fontWeight: 'bold',
+    textTransform: 'uppercase'
   }
 });
