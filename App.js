@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, View, Image } from 'react-native';
+import { StyleSheet, Text, View, Image, Button } from 'react-native';
+import {LinearGradient} from 'expo-linear-gradient';
 import * as Location from 'expo-location';
 import * as Permissions from 'expo-permissions';
 import axios from 'axios';
@@ -56,26 +57,32 @@ export default class App extends React.Component {
 
     return(
       <View style={styles.container}>
-        <Text>{text}</Text>
-        <View style={styles.weather}>
-          <View>
-            <Image
-              style={{width: 100, height: 100}}
-              source={{uri: `http://openweathermap.org/img/w/${picto}.png`}}
+        <LinearGradient colors={['#0CBCE6', '#0B90E6']} style={{flex: 1}} >
+          <Text>{text}</Text>
+          <View style={styles.weather}>
+            <View>
+              <Image
+                style={styles.weatherPicto}
+                source={{uri: `http://openweathermap.org/img/w/${picto}.png`}}
+              />
+            </View>
+            <View>
+              <Text style={styles.weatherTemp}>{weather ? Math.floor(weather.main.temp - k) + '°C' : ''}</Text>
+            </View>
+            <Text style={styles.weatherName}>{weather ? weather.name : ''}</Text>
+            <View style={[styles.row, styles.rowTemp]}>
+              <Text style={styles.weatherMaxTemp}>{weather ? 'Temp Max: ' + Math.floor(weather.main.temp_max - k) + '°C' : ''}</Text>
+              <Text style={styles.weatherMinTemp}>{weather ? 'Temp Min: ' + Math.floor(weather.main.temp_min - k) + '°C' : ''}</Text>
+            </View>
+            <Button
+              title="Actualiser"
+              style={styles.weatherReload}
             />
           </View>
-          <View>
-            <Text style={styles.weatherTemp}>{weather ? Math.floor(weather.main.temp - k) + '°C' : ''}</Text>
+          <View style={styles.signature}>
+              <Text style={styles.signatureContent}>Create by Alex.js</Text>
           </View>
-          <Text style={styles.weatherName}>{weather ? weather.name : ''}</Text>
-          <View style={[styles.row, styles.rowTemp]}>
-            <Text style={styles.weatherMaxTemp}>{weather ? 'Temp Max: ' + Math.floor(weather.main.temp_max - k) + '°C' : ''}</Text>
-            <Text style={styles.weatherMinTemp}>{weather ? 'Temp Min: ' + Math.floor(weather.main.temp_min - k) + '°C' : ''}</Text>
-          </View>
-        </View>
-        <View style={styles.signature}>
-            <Text style={styles.signatureContent}>Alex.js</Text>
-        </View>
+        </LinearGradient>
       </View>
     )
   }
@@ -94,6 +101,7 @@ const styles = StyleSheet.create({
   },
   rowTemp: {
     justifyContent: 'space-around',
+    marginBottom: 30
   },
   weather: {
     flex: 1,
@@ -119,6 +127,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: 'bold'
   },
+  weatherPicto: {
+    height: 70,
+    width: 70,
+  },
   signature: {
     flex: 0.1,
     alignItems: 'flex-end',
@@ -127,6 +139,6 @@ const styles = StyleSheet.create({
   },
   signatureContent: {
     fontWeight: 'bold',
-    textTransform: 'uppercase'
+    color: '#666666'
   }
 });
