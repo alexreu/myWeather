@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Image } from 'react-native';
 import * as Location from 'expo-location';
 import * as Permissions from 'expo-permissions';
 import axios from 'axios';
@@ -44,18 +44,35 @@ export default class App extends React.Component {
     .then(weather => {
       this.setState({
         weather: weather.data,
-        isLoading: false
       })
     })
   }
 
   render(){
     const {isLoading, errMsg, location, weather} = this.state;
+    const text = isLoading ? "Chargement" : errMsg ? errMsg : '';
+    const k = 273.15;
+    const picto = weather ? weather.weather[0].icon : "";
 
-    const text = isLoading ? "Chargement" : errMsg ? errMsg : JSON.stringify(location); 
     return(
       <View style={styles.container}>
         <Text>{text}</Text>
+        <View style={styles.weather}>
+          <View>
+            <Image
+              style={{width: 100, height: 100}}
+              source={{uri: `http://openweathermap.org/img/w/${picto}.png`}}
+            />
+          </View>
+          <View>
+            <Text style={styles.weatherTemp}>{weather ? Math.floor(weather.main.temp - k) + '°C' : ''}</Text>
+          </View>
+          <Text style={styles.weatherName}>{weather ? weather.name : ''}</Text>
+          <View style={[styles.row, styles.rowTemp]}>
+            <Text style={styles.weatherMaxTemp}>{weather ? 'Temp Max: ' + Math.floor(weather.main.temp_max - k) + '°C' : ''}</Text>
+            <Text style={styles.weatherMinTemp}>{weather ? 'Temp Min: ' + Math.floor(weather.main.temp_min - k) + '°C' : ''}</Text>
+          </View>
+        </View>
       </View>
     )
   }
@@ -63,9 +80,40 @@ export default class App extends React.Component {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: "100%",
+    height: "100%",
   },
+  row: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  rowTemp: {
+    justifyContent: 'space-around',
+  },
+  weather: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  weatherTemp: {
+    fontSize: 100
+  },
+  weatherName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    fontSize: 25,
+    marginBottom: 10
+  },
+  weatherMaxTemp: {
+    marginRight: 2,
+    fontSize: 15,
+    fontWeight: 'bold'
+  },
+  weatherMinTemp: {
+    marginLeft: 2,
+    fontSize: 15,
+    fontWeight: 'bold'
+  }
 });
