@@ -1,10 +1,12 @@
 import React from 'react';
-import { StyleSheet, Text, View, Image, Button, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, Image, Button, ToolbarAndroid } from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import * as Location from 'expo-location';
 import * as Permissions from 'expo-permissions';
 import axios from 'axios';
-import { storeUrl } from 'expo/build/StoreReview/StoreReview';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import {faRedo} from '@fortawesome/free-solid-svg-icons';
+
 
 export default class App extends React.Component {
   state = {
@@ -20,11 +22,9 @@ export default class App extends React.Component {
 
   getLocationAndWeather = async () => {
     const {status} = await Permissions.askAsync(Permissions.LOCATION);
-    this.setState({isLoading: true})
     if(status !== 'granted') {
       this.setState({
         errMsg: 'Veuillez autorisé l\'utilisation de la localisation GPS',
-        isLoading: false
       })
     }
 
@@ -37,7 +37,6 @@ export default class App extends React.Component {
     this.setState({
       weather,
       isLoading: false
-
     })
   };
 
@@ -51,57 +50,75 @@ export default class App extends React.Component {
   }
 
   handleClick = () => {
-    this.getWeather();
+    console.log("bonsoir")
+    const {location} = this.state
+    console.log(location)
+    this.setState({weather: null})
+    this.getWeather(location.coords.latitude, location.coords.longitude);
+  }
+
+  getInformation = position => {
+    if(position === 0 ){
+      alert('Application réalisée par Alex.js Developement')
+    }
   }
 
   render(){
-    const {isLoading, errMsg, location, weather} = this.state;
+    const {isLoading, errMsg, weather} = this.state;
     console.log(weather)
-    const text = isLoading ? "Chargement" : errMsg ? errMsg : '';
-    const k = 273.15;
+    const text = !weather ? "Chargement" : errMsg ? errMsg : '';
     const picto = weather ? weather.current.condition.icon : "";
 
     return(
-      <View style={styles.container}>
-        <Text>{text}</Text>
-        <View style={styles.weather}>
-          <View style={styles.row}>
-            <Image
-              style={styles.weatherPicto}
-              source={{uri: `http:${picto}`}}
-            />
-            <Text style={styles.weatherTemp}>{weather ? weather.current.temp_c + '°C' : ''}</Text>
-          </View>
-          <Text style={styles.weatherName}>{weather ? weather.location.name : ''}</Text>
-          <View style={[styles.row, styles.rowTemp]}>
-            <Text style={styles.weatherTempFeel}>{weather ? 'Ressenti: ' + weather.current.feelslike_c + '°C' : ''}</Text>
-          </View>
-          <Button
-            title="Actualiser"
-            style={styles.weatherReload}
-            onClick={this.handleClick}
-          />
-        </View>
-        <View style={styles.weatherWindView}>
-          <Text style={styles.weatherContent}>Informations</Text>
-          <Text style={styles.weatherContent}>{weather ? 'Vent: ' + weather.current.wind_degree + '° / ' + weather.current.wind_dir : ''}</Text>
-          <Text style={styles.weatherContent}>{weather ? 'Vitesse du vent: ' + weather.current.wind_kph + ' km/h' : ''}</Text>
-          <Text style={styles.weatherContent}>{weather ? 'Humidité: ' + weather.current.humidity + ' %' : ''}</Text>
-          <Text style={styles.weatherContent}>{weather ? 'Précipitations: ' + weather.current.precip_mm + ' mm' : ''}</Text>
-          <Text style={styles.weatherContent}>{weather ? 'Indice UV: ' + weather.current.uv : ''}</Text>
-        </View>
-        <View style={styles.signature}>
-            <Text style={styles.signatureContent}>Create by Alex.js</Text>
-        </View>
-      </View>
+          !weather ? (
+            <View style={styles.container}>
+              <View style={styles.weatherLoadingrow}>
+                <Text style={styles.weatherLoadingContent}>{text}</Text>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.container}>
+              <ToolbarAndroid
+                title="Météo"
+                actions={[{title: 'ℹ️', show: 'always'}]}
+                style={styles.toolBar}
+                onActionSelected={this.getInformation} 
+                titleColor="#FFFFFF"
+              />
+              <View style={styles.weather}>
+                <View style={styles.row}>
+                  <Image
+                    style={styles.weatherPicto}
+                    source={{uri: `http:${picto}`}}
+                  />
+                  <Text style={styles.weatherTemp}>{weather ? weather.current.temp_c + '°C' : ''}</Text>
+                </View>
+                <Text style={styles.weatherName}>{weather ? weather.location.name : ''}</Text>
+                <View style={[styles.row, styles.rowTemp]}>
+                  <Text style={styles.weatherTempFeel}>{weather ? 'Ressenti: ' + weather.current.feelslike_c + '°C' : ''}</Text>
+                </View>
+                <FontAwesomeIcon icon={ faRedo } color={'#FFFFFF'} size={20} onPress={this.handleClick} />
+              </View>
+              <View style={styles.weatherWindView}>
+                <Text style={styles.weatherContent}>Informations</Text>
+                <Text style={styles.weatherContent}>{weather ? 'Vent: ' + weather.current.wind_degree + '° / ' + weather.current.wind_dir : ''}</Text>
+                <Text style={styles.weatherContent}>{weather ? 'Vitesse du vent: ' + weather.current.wind_kph + ' km/h' : ''}</Text>
+                <Text style={styles.weatherContent}>{weather ? 'Humidité: ' + weather.current.humidity + ' %' : ''}</Text>
+                <Text style={styles.weatherContent}>{weather ? 'Précipitations: ' + weather.current.precip_mm + ' mm' : ''}</Text>
+                <Text style={styles.weatherContent}>{weather ? 'Indice UV: ' + weather.current.uv : ''}</Text>
+              </View>
+              <View style={styles.signature}>
+                  <Text style={styles.signatureContent}>Create by Alex.js</Text>
+              </View>
+            </View>
+          )
     )
   }
 }
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
-    height: '100%',
+    flex:1,
     backgroundColor: '#000000'
   },
   row: {
@@ -118,6 +135,16 @@ const styles = StyleSheet.create({
   rowTemp: {
     justifyContent: 'space-around',
     marginBottom: 30
+  },
+  weatherLoadingrow: {
+    flex: 1,
+    alignItems:'center',
+    justifyContent: 'center'
+  },
+  weatherLoadingContent: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 20
   },
   weather: {
     flex: 1,
@@ -148,8 +175,8 @@ const styles = StyleSheet.create({
     color: '#FFFFFF'
   },
   weatherPicto: {
-    height: 70,
-    width: 70,
+    height: 100,
+    width: 100,
   },
   weatherWindView: {
     flex: 0.3,
@@ -183,5 +210,10 @@ const styles = StyleSheet.create({
     fontSize: 5,
     fontWeight: 'bold',
     color: '#666666'
+  },
+  toolBar: {
+    backgroundColor: 'gray',
+    height: 56,
+    color: "#FFFFFF"
   }
 });
