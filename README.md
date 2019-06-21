@@ -24,7 +24,7 @@ After for run the project use ` npm start ` :
 $ npm start
 ```
 
-For compile application for iOS use ` expo build:android ` : 
+For compile application for Android use ` expo build:android ` : 
 ```bash
 $ expo build:android
 ```
