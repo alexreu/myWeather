@@ -1,8 +1,9 @@
 import React from 'react';
-import { StyleSheet, Text, View, Image, Button, ToolbarAndroid } from 'react-native';
+import { StyleSheet, Text, View, Image, Button, ToolbarAndroid, NetInfo, Alert } from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import * as Location from 'expo-location';
 import * as Permissions from 'expo-permissions';
+import Constants from 'expo-constants';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import {faRedo} from '@fortawesome/free-solid-svg-icons';
@@ -13,11 +14,28 @@ export default class App extends React.Component {
     location: null,
     isLoading: true,
     errMsg: null,
-    weather: null
+    weather: null,
+    connection: null
   }
 
-  componentDidMount(){
-    this.getLocationAndWeather();
+  async componentDidMount(){
+    NetInfo.addEventListener('connectionChange', this.handleConnectionChange);
+    let connectionInfo = await NetInfo.getConnectionInfo();
+    this.setState({connection: connectionInfo.type})
+    if(this.state.connection === 'wifi' || this.state.connection === 'cellular'){
+      this.getLocationAndWeather();
+    }
+  }
+
+  handleConnectionChange = connectionInfo => {
+    if(this.state.connection !== connectionInfo.type){
+      if(connectionInfo.type === 'none'){
+        this.setState({connection: connectionInfo.type, weather: null, location: null, errMsg: "No Connection 😭"})
+      }else {
+        this.setState({connection: connectionInfo.type})
+        this.getLocationAndWeather();
+      }
+    }
   }
 
   getLocationAndWeather = async () => {
@@ -49,26 +67,33 @@ export default class App extends React.Component {
     })
   }
 
-  handleClick = () => {
-    console.log("bonsoir")
+  handleClick = async () => {
     const {location} = this.state
-    console.log(location)
-    this.setState({weather: null})
-    this.getWeather(location.coords.latitude, location.coords.longitude);
+    let connection = NetInfo.getConnectionInfo();
+    if(connection.type !== 'none'){
+      this.setState({weather: null, location: null})
+      this.getLocationAndWeather();
+    }
+    this.setState({weather: null, location: null})
   }
 
   getInformation = position => {
     if(position === 0 ){
-      alert('Application réalisée par Alex.js Developement')
+      Alert.alert(
+        'Information',
+        'Information météo proposé par APIXU Developper par Alex.js',
+        [
+          {text: 'OK'},
+        ],
+        {cancelable: false},
+      );
     }
   }
 
   render(){
     const {isLoading, errMsg, weather} = this.state;
-    console.log(weather)
-    const text = !weather ? "Chargement" : errMsg ? errMsg : '';
+    const text = !weather ? errMsg ? errMsg : "Chargement..."  : '';
     const picto = weather ? weather.current.condition.icon : "";
-
     return(
           !weather ? (
             <View style={styles.container}>
@@ -78,13 +103,15 @@ export default class App extends React.Component {
             </View>
           ) : (
             <View style={styles.container}>
-              <ToolbarAndroid
-                title="Météo"
-                actions={[{title: 'ℹ️', show: 'always'}]}
-                style={styles.toolBar}
-                onActionSelected={this.getInformation} 
-                titleColor="#FFFFFF"
-              />
+              <View style={styles.toolbarContainer}>
+                <ToolbarAndroid
+                  title="Météo"
+                  actions={[{title: 'ℹ️', show: 'always'}]}
+                  style={styles.toolBar}
+                  onActionSelected={this.getInformation} 
+                  titleColor="#FFFFFF"
+                />
+              </View>
               <View style={styles.weather}>
                 <View style={styles.row}>
                   <Image
@@ -120,6 +147,9 @@ const styles = StyleSheet.create({
   container: {
     flex:1,
     backgroundColor: '#000000'
+  },
+  toolbarContainer: {
+    height: 24
   },
   row: {
     display: 'flex',
@@ -182,7 +212,7 @@ const styles = StyleSheet.create({
     flex: 0.3,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'gray',
+    backgroundColor: 'rgba(102,102,102,0.5)',
     width: '85%',
     borderRadius: 50,
     marginLeft: 'auto',
@@ -213,7 +243,8 @@ const styles = StyleSheet.create({
   },
   toolBar: {
     backgroundColor: 'gray',
-    height: 56,
-    color: "#FFFFFF"
+    height: 50,
+    color: "#FFFFFF",
+    marginTop: Constants.statusBarHeight
   }
 });
