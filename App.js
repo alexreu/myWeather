@@ -18,6 +18,7 @@ export default class App extends React.Component {
     connection: null
   }
 
+  // initialize component
   async componentDidMount(){
     NetInfo.addEventListener('connectionChange', this.handleConnectionChange);
     let connectionInfo = await NetInfo.getConnectionInfo();
@@ -27,17 +28,19 @@ export default class App extends React.Component {
     }
   }
 
+  // handle connection change
   handleConnectionChange = connectionInfo => {
     if(this.state.connection !== connectionInfo.type){
       if(connectionInfo.type === 'none'){
-        this.setState({connection: connectionInfo.type, weather: null, location: null, errMsg: "No Connection 😭"})
+        this.setState({connection: connectionInfo.type, weather: null, location: null, errMsg: "Check your connection"})
       }else {
-        this.setState({connection: connectionInfo.type})
+        this.setState({connection: connectionInfo.typen, errMsg: null})
         this.getLocationAndWeather();
       }
     }
   }
 
+  // get location and get weather after get gps coords
   getLocationAndWeather = async () => {
     const {status} = await Permissions.askAsync(Permissions.LOCATION);
     if(status !== 'granted') {
@@ -58,6 +61,7 @@ export default class App extends React.Component {
     })
   };
 
+  // get weather with api call
   getWeather = (lat, lon) => {
     axios.get(`http://api.apixu.com/v1/current.json?key=e28cc67df3d142628ba64118191906&q=${lat},${lon}`)
     .then(weather => {
@@ -67,16 +71,17 @@ export default class App extends React.Component {
     })
   }
 
+
+  // handle click for refresh weather
   handleClick = async () => {
-    const {location} = this.state
+    this.setState({weather: null, location: null, errMsg: null})
     let connection = NetInfo.getConnectionInfo();
     if(connection.type !== 'none'){
-      this.setState({weather: null, location: null})
       this.getLocationAndWeather();
     }
-    this.setState({weather: null, location: null})
-  }
+  };
 
+  // display pop up for informations
   getInformation = position => {
     if(position === 0 ){
       Alert.alert(
